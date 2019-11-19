@@ -1,9 +1,13 @@
+import React from 'react';
+
+import { Root } from "native-base";
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
 import Home from './src/pages/Home';
 import Login from './src/pages/Login';
 import Register from './src/pages/Register';
+import Dashboard from './src/pages/Dashboard';
 
 const App = createAppContainer(
     createStackNavigator({
@@ -16,6 +20,9 @@ const App = createAppContainer(
         Register: {
             screen: Register
         },
+        Dashboard: {
+            screen: Dashboard
+        },
     },
         {
             initialRouteName: 'Home'
@@ -23,4 +30,7 @@ const App = createAppContainer(
     )
 );
 
-export default App;
+export default () =>
+    <Root>
+        <App />
+    </Root>;

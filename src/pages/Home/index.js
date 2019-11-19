@@ -5,6 +5,8 @@ import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 
+import firebase from '../../services/firebase';
+
 export default class Home extends React.Component {
     constructor(props) {
         super(props);
@@ -22,9 +24,9 @@ export default class Home extends React.Component {
             ...Ionicons.font,
         });
         this.setState({ isReady: true });
-        setTimeout(() => {
-            this.props.navigation.navigate('Register');
-        }, 5000);
+        await firebase.auth().onAuthStateChanged(user => {
+            this.props.navigation.navigate(user ? 'Dashboard' : 'Login');           
+        })
     }
 
     render() {

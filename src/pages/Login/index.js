@@ -1,28 +1,28 @@
 import React from 'react';
 import { StyleSheet, View, Image } from 'react-native';
 
-import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
 import { Item, Input, Container, Text, Button } from 'native-base';
+
+import firebase from '../../services/firebase';
 
 export default class Login extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { isReady: false };
+        this.state = { email: null, password: null };
     }
 
     static navigationOptions = {
         header: null
     }
 
-    async componentDidMount() {
-        await Font.loadAsync({
-            Roboto: require('../../../node_modules/native-base/Fonts/Roboto.ttf'),
-            Roboto_medium: require('../../../node_modules/native-base/Fonts/Roboto_medium.ttf'),
-            ...Ionicons.font,
-        });
-        this.setState({ isReady: true });
+    signIn = () => {
+        firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+            .then(() => {
+                this.props.navigation.navigate('Dashboard');
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
     register = () => {
@@ -30,25 +30,22 @@ export default class Login extends React.Component {
     }
 
     render() {
-        if (!this.state.isReady) {
-            return <AppLoading />;
-        }
         return (
             <Container style={styles.container}>
                 <View style={styles.login}>
                     <Image style={styles.image} source={require("../../../assets/firebase-logo.png")} />
                     <Item rounded style={styles.item}>
-                        <Input placeholder='Email' style={{ fontSize: 12 }} />
+                        <Input placeholder='Email' style={{ fontSize: 12 }} onChangeText={(email) => this.setState({ email })} />
                     </Item>
                     <Item rounded style={styles.item}>
-                        <Input placeholder='Senha' secureTextEntry={true} style={{ fontSize: 12 }} />
+                        <Input placeholder='Senha' secureTextEntry={true} style={{ fontSize: 12 }} onChangeText={(password) => this.setState({ password })} />
                     </Item>
-                    <Button rounded style={styles.buttonLogin}>
+                    <Button rounded style={styles.buttonLogin} onPress={this.signIn}>
                         <Text style={{ fontSize: 12 }}>
                             Entrar
                         </Text>
                     </Button>
-                    <Button rounded style={styles.buttonRegister} onPress={this.register}>
+                    <Button transparent style={styles.buttonRegister} onPress={this.register}>
                         <Text style={{ fontSize: 12 }}>
                             Não tem uma conta ? Cadastrar-se
                         </Text>
@@ -70,7 +67,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fff',
         elevation: 30,
-        height: 450,
+        height: 420,
         width: 350,
         borderRadius: 10,
         shadowColor: "#000",
@@ -103,9 +100,6 @@ const styles = StyleSheet.create({
     buttonRegister: {
         flex: 1,
         justifyContent: 'center',
-        width: 300,
-        height: 42,
-        marginBottom: 10,
-        backgroundColor: '#3b5998'
+        marginTop: 0,
     }
 });
