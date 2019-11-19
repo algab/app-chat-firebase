@@ -25,7 +25,7 @@ export default class Home extends React.Component {
         });
         this.setState({ isReady: true });
         await firebase.auth().onAuthStateChanged(user => {
-            this.props.navigation.navigate(user ? 'Dashboard' : 'Login');           
+            this.props.navigation.navigate(user ? 'Dashboard' : 'Login');
         })
     }
 

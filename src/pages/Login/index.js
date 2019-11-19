@@ -1,14 +1,16 @@
 import React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View, Image, Dimensions } from 'react-native';
 
 import { Item, Input, Container, Text, Button } from 'native-base';
+
+import Loader from '../../components/Loader';
 
 import firebase from '../../services/firebase';
 
 export default class Login extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { email: null, password: null };
+        this.state = { email: null, password: null, loading: false };
     }
 
     static navigationOptions = {
@@ -16,12 +18,14 @@ export default class Login extends React.Component {
     }
 
     signIn = () => {
+        this.setState({ loading: true });
         firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
             .then(() => {
+                this.setState({ loading: false });
                 this.props.navigation.navigate('Dashboard');
             })
             .catch(err => {
-                console.log(err);
+                this.setState({ loading: false });
             });
     }
 
@@ -32,6 +36,7 @@ export default class Login extends React.Component {
     render() {
         return (
             <Container style={styles.container}>
+                <Loader loading={this.state.loading} />
                 <View style={styles.login}>
                     <Image style={styles.image} source={require("../../../assets/firebase-logo.png")} />
                     <Item rounded style={styles.item}>
@@ -62,6 +67,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#fff',
+        height: Dimensions.get('window').height,
     },
     login: {
         alignItems: 'center',

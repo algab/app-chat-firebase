@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, KeyboardAvoidingView, Modal, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView } from 'react-native';
 
 import md5 from 'md5';
 import { Item, Input, Text, Button, Toast } from 'native-base';
+
+import Loader from '../../components/Loader';
 
 import firebase from '../../services/firebase';
 
@@ -14,7 +16,7 @@ export default class Register extends React.Component {
             email: null,
             password: null,
             confirm: null,
-            modal: false,
+            loading: false,
             button: true
         };
     }
@@ -24,7 +26,7 @@ export default class Register extends React.Component {
     }
 
     handleChange(target, value) {
-        if (target === 'password' || target === 'confirm') {      
+        if (target === 'password' || target === 'confirm') {
             if (value.length <= 6) {
                 Toast.show({
                     text: 'Senha precisa ter mais de 6 caracteres.',
@@ -32,12 +34,12 @@ export default class Register extends React.Component {
                     position: 'top'
                 });
             } else {
-                this.setState({ [target]: value });                
+                this.setState({ [target]: value });
             }
         } else {
             this.setState({ [target]: value });
         }
-        const { name, email, password, confirm } = this.state;     
+        const { name, email, password, confirm } = this.state;
         if (name !== null && email !== null && password !== null && confirm !== null) {
             this.setState({ button: false });
         } else {
@@ -45,21 +47,17 @@ export default class Register extends React.Component {
         }
     }
 
-    changeModal() {
-        this.setState({ modal: !this.state.modal });
-    }
-
     saveRegister = async () => {
         try {
-            this.changeModal();
+            this.setState({ loading: true });
             const { name, email, password, confirm } = this.state;
-            if (password === confirm) {                
+            if (password === confirm) {
                 await firebase.database().ref('users').push({
                     name,
                     email,
                     avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
                 });
-                await firebase.auth().createUserWithEmailAndPassword(email, password);                
+                await firebase.auth().createUserWithEmailAndPassword(email, password);
             } else {
                 Toast.show({
                     text: 'Senhas incorretas.',
@@ -67,10 +65,9 @@ export default class Register extends React.Component {
                     position: 'top'
                 });
             }
-            this.changeModal();
+            this.setState({ loading: false });
         } catch (error) {
-            this.changeModal();
-            console.log(error);            
+            this.setState({ loading: false });
             Toast.show({
                 text: 'Por favor, tente novamente mais tarde.',
                 type: 'danger',
@@ -82,6 +79,7 @@ export default class Register extends React.Component {
     render() {
         return (
             <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+                <Loader loading={this.state.loading} />
                 <View style={styles.login}>
                     <Text style={styles.text}>Cadastrar-se</Text>
                     <View style={styles.separator}></View>
@@ -103,14 +101,6 @@ export default class Register extends React.Component {
                         </Text>
                     </Button>
                 </View>
-                <Modal animationType="slide" transparent visible={this.state.modal}>
-                    <View style={styles.test}>
-                        <View style={styles.background}>
-                            <ActivityIndicator size="large" color="#fff" />
-                            <Text style={{ color: '#fff' }}>Carregando...</Text>
-                        </View>
-                    </View>
-                </Modal>
             </KeyboardAvoidingView>
         );
     }
@@ -161,23 +151,5 @@ const styles = StyleSheet.create({
         height: 42,
         marginBottom: 10,
         backgroundColor: '#4e73df'
-    },
-    test: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.25)',
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0
-    },
-    background: {
-        position: 'absolute',
-        top: -0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
+    }
 });
