@@ -2,7 +2,10 @@ import React from 'react';
 import { StyleSheet, View, KeyboardAvoidingView } from 'react-native';
 
 import md5 from 'md5';
-import { Item, Input, Text, Button, Toast } from 'native-base';
+import { Text, Toast } from 'native-base';
+import { StackActions, NavigationActions } from 'react-navigation';
+
+import { Form } from './Form';
 
 import Loader from '../../components/Loader';
 
@@ -11,61 +14,30 @@ import firebase from '../../services/firebase';
 export default class Register extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            name: null,
-            email: null,
-            password: null,
-            confirm: null,
-            loading: false,
-            button: true
-        };
+        this.state = { loading: false };
     }
 
     static navigationOptions = {
         header: null
     }
 
-    handleChange(target, value) {
-        if (target === 'password' || target === 'confirm') {
-            if (value.length <= 6) {
-                Toast.show({
-                    text: 'Senha precisa ter mais de 6 caracteres.',
-                    type: 'warning',
-                    position: 'top'
-                });
-            } else {
-                this.setState({ [target]: value });
-            }
-        } else {
-            this.setState({ [target]: value });
-        }
-        const { name, email, password, confirm } = this.state;
-        if (name !== null && email !== null && password !== null && confirm !== null) {
-            this.setState({ button: false });
-        } else {
-            this.setState({ button: true });
-        }
-    }
-
-    saveRegister = async () => {
+    saveRegister = async (values) => {
         try {
             this.setState({ loading: true });
-            const { name, email, password, confirm } = this.state;
-            if (password === confirm) {
-                await firebase.database().ref('users').push({
-                    name,
-                    email,
-                    avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
-                });
-                await firebase.auth().createUserWithEmailAndPassword(email, password);
-            } else {
-                Toast.show({
-                    text: 'Senhas incorretas.',
-                    type: 'warning',
-                    position: 'top'
-                });
-            }
+            const { name, email, password } = values;
+            await firebase.database().ref('users').push({
+                name,
+                email,
+                avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
+            });
+            await firebase.auth().createUserWithEmailAndPassword(email, password);
+            await firebase.auth().signInWithEmailAndPassword(email, password);
             this.setState({ loading: false });
+            const resetAction = StackActions.reset({
+                index: 0,
+                actions: [NavigationActions.navigate({ routeName: 'Dashboard' })],
+            });
+            this.props.navigation.dispatch(resetAction);
         } catch (error) {
             this.setState({ loading: false });
             Toast.show({
@@ -83,23 +55,7 @@ export default class Register extends React.Component {
                 <View style={styles.login}>
                     <Text style={styles.text}>Cadastrar-se</Text>
                     <View style={styles.separator}></View>
-                    <Item rounded style={styles.item}>
-                        <Input placeholder='Nome' style={{ fontSize: 12 }} onChange={(ev) => this.handleChange('name', ev.nativeEvent.text.trim(' '))} />
-                    </Item>
-                    <Item rounded style={styles.item}>
-                        <Input placeholder='Email' style={{ fontSize: 12 }} onChange={(ev) => this.handleChange('email', ev.nativeEvent.text)} />
-                    </Item>
-                    <Item rounded style={styles.item}>
-                        <Input placeholder='Senha' secureTextEntry={true} style={{ fontSize: 12 }} onChange={(ev) => this.handleChange('password', ev.nativeEvent.text)} />
-                    </Item>
-                    <Item rounded style={styles.item}>
-                        <Input placeholder='Confirmar Senha' secureTextEntry={true} style={{ fontSize: 12 }} onChange={(ev) => this.handleChange('confirm', ev.nativeEvent.text)} />
-                    </Item>
-                    <Button rounded style={styles.button} onPress={this.saveRegister} disabled={this.state.button}>
-                        <Text style={{ fontSize: 12 }}>
-                            Salvar
-                        </Text>
-                    </Button>
+                    <Form submit={this.saveRegister} />
                 </View>
             </KeyboardAvoidingView>
         );
@@ -117,7 +73,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fff',
         elevation: 30,
-        height: 450,
+        height: 455,
         width: 350,
         borderRadius: 10,
         shadowColor: "#000",
