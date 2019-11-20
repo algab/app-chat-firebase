@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Image, Dimensions } from 'react-native';
 
-import { Item, Input, Container, Text, Button } from 'native-base';
+import { StackActions, NavigationActions } from 'react-navigation';
+import { Item, Input, Container, Text, Button, Toast } from 'native-base';
 
 import Loader from '../../components/Loader';
 
@@ -22,10 +23,19 @@ export default class Login extends React.Component {
         firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
             .then(() => {
                 this.setState({ loading: false });
-                this.props.navigation.navigate('Dashboard');
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [NavigationActions.navigate({ routeName: 'Dashboard' })],
+                });
+                this.props.navigation.dispatch(resetAction);
             })
             .catch(err => {
                 this.setState({ loading: false });
+                Toast.show({
+                    text: 'Por favor, tente novamente mais tarde.',
+                    type: 'danger',
+                    position: 'top'
+                });
             });
     }
 
