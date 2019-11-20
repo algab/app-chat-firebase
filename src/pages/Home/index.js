@@ -4,6 +4,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
+import { StackActions, NavigationActions } from 'react-navigation';
 
 import firebase from '../../services/firebase';
 
@@ -25,7 +26,12 @@ export default class Home extends React.Component {
         });
         this.setState({ isReady: true });
         await firebase.auth().onAuthStateChanged(user => {
-            this.props.navigation.navigate(user ? 'Dashboard' : 'Login');
+            const resetAction = StackActions.reset({
+                index: 0,
+                actions: [NavigationActions.navigate({ routeName: user ? 'Dashboard' : 'Login' })],
+            });
+            this.props.navigation.dispatch(resetAction);
+            // this.props.navigation.navigate('Login');
         })
     }
 
