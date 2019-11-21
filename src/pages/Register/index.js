@@ -10,6 +10,7 @@ import { Form } from './Form';
 import Loader from '../../components/Loader';
 
 import firebase from '../../services/firebase';
+import { storeData } from '../../services/storage';
 
 export default class Register extends React.Component {
     constructor(props) {
@@ -21,31 +22,46 @@ export default class Register extends React.Component {
         header: null
     }
 
-    saveRegister = async (values) => {
-        try {
-            this.setState({ loading: true });
-            const { name, email, password } = values;
-            await firebase.database().ref('users').push({
-                name,
-                email,
-                avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
+    saveRegister = (values) => {
+        this.setState({ loading: true });
+        const { name, email, password } = values;
+        firebase.database().ref('users').once('value')
+            .then(async snapshot => {
+                snapshot.forEach(data => {
+                    if (data.val().email === email) {
+                        throw new Error('email-already-in-use');
+                    }
+                });
+                await firebase.database().ref('users').push({
+                    name,
+                    email,
+                    avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
+                });
+                const data = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                await storeData('user', { email: data.user.email });
+                this.setState({ loading: false });
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [NavigationActions.navigate({ routeName: 'Dashboard' })],
+                });
+                this.props.navigation.dispatch(resetAction);
+            })
+            .catch(err => {
+                this.setState({ loading: false });
+                if (err.message === 'email-already-in-use') {
+                    Toast.show({
+                        text: 'Email indisponível, tente outro.',
+                        type: 'warning',
+                        position: 'top'
+                    });
+                } else {
+                    Toast.show({
+                        text: 'Por favor, tente novamente mais tarde.',
+                        type: 'danger',
+                        position: 'top'
+                    });
+                }
             });
-            await firebase.auth().createUserWithEmailAndPassword(email, password);
-            await firebase.auth().signInWithEmailAndPassword(email, password);
-            this.setState({ loading: false });
-            const resetAction = StackActions.reset({
-                index: 0,
-                actions: [NavigationActions.navigate({ routeName: 'Dashboard' })],
-            });
-            this.props.navigation.dispatch(resetAction);
-        } catch (error) {
-            this.setState({ loading: false });
-            Toast.show({
-                text: 'Por favor, tente novamente mais tarde.',
-                type: 'danger',
-                position: 'top'
-            });
-        }
     }
 
     render() {

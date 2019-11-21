@@ -7,6 +7,7 @@ import { Item, Input, Container, Text, Button, Toast } from 'native-base';
 import Loader from '../../components/Loader';
 
 import firebase from '../../services/firebase';
+import { storeData } from '../../services/storage';
 
 export default class Login extends React.Component {
     constructor(props) {
@@ -21,7 +22,8 @@ export default class Login extends React.Component {
     signIn = () => {
         this.setState({ loading: true });
         firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-            .then(() => {
+            .then(async (res) => {
+                await storeData('user', { email: res.user.email });
                 this.setState({ loading: false });
                 const resetAction = StackActions.reset({
                     index: 0,
@@ -29,13 +31,21 @@ export default class Login extends React.Component {
                 });
                 this.props.navigation.dispatch(resetAction);
             })
-            .catch(err => {
+            .catch((err) => {
                 this.setState({ loading: false });
-                Toast.show({
-                    text: 'Por favor, tente novamente mais tarde.',
-                    type: 'danger',
-                    position: 'top'
-                });
+                if (err.code === 'auth/wrong-password') {
+                    Toast.show({
+                        text: 'Email ou senha incorretos.',
+                        type: 'warning',
+                        position: 'top'
+                    });
+                } else {
+                    Toast.show({
+                        text: 'Por favor, tente novamente mais tarde.',
+                        type: 'danger',
+                        position: 'top'
+                    });
+                }
             });
     }
 
