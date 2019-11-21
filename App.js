@@ -8,6 +8,7 @@ import Home from './src/pages/Home';
 import Login from './src/pages/Login';
 import Register from './src/pages/Register';
 import Dashboard from './src/pages/Dashboard';
+import Search from './src/pages/Dashboard/Search';
 
 const App = createAppContainer(
     createStackNavigator({
@@ -22,6 +23,9 @@ const App = createAppContainer(
         },
         Dashboard: {
             screen: Dashboard
+        },
+        Search: {
+            screen: Search
         },
     },
         {
