@@ -13,26 +13,60 @@ import {
     Button,
     Thumbnail,
     Icon,
+    Toast,
 } from 'native-base';
+import { StackActions, NavigationActions } from 'react-navigation';
+
+import firebase from '../../services/firebase';
+import { removeData } from '../../services/storage';
 
 export default class Dashboard extends React.Component {
-    static navigationOptions = {
-        title: 'Minhas Conversas',
-        headerTintColor: '#FFF',
-        headerStyle: {
-            backgroundColor: '#FF6F00',
-        },
-        headerLeft: null,
-        headerRight: () => (
-            <View style={{ flexDirection: 'row' }}>
-                <Button transparent>
-                    <Icon name='search' style={{ color: '#fff' }} />
-                </Button>
-                <Button transparent>
-                    <Icon name='log-out' style={{ color: '#fff' }} />
-                </Button>
-            </View>
-        ),
+    constructor(props) {
+        super(props);
+    }
+
+    static navigationOptions = ({ navigation }) => {
+        return {
+            title: 'Minhas Conversas',
+            headerTintColor: '#FFF',
+            headerStyle: {
+                backgroundColor: '#FF6F00',
+            },
+            headerLeft: null,
+            headerRight: () => (
+                <View style={{ flexDirection: 'row' }}>
+                    <Button transparent onPress={() => navigation.navigate('Search')}>
+                        <Icon name='search' style={{ color: '#fff' }} />
+                    </Button>
+                    <Button transparent onPress={navigation.getParam('signOut')}>
+                        <Icon name='log-out' style={{ color: '#fff' }} />
+                    </Button>
+                </View>
+            ),
+        }
+    }
+
+    componentDidMount() {
+        this.props.navigation.setParams({ signOut: this.signOut });
+    }
+
+    signOut = () => {
+        firebase.auth().signOut()
+            .then(async () => {
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [NavigationActions.navigate({ routeName: 'Login' })],
+                });
+                this.props.navigation.dispatch(resetAction);
+                await removeData('user');
+            })
+            .catch(() => {
+                Toast.show({
+                    text: 'Por favor, tente novamente mais tarde.',
+                    type: 'danger',
+                    position: 'top'
+                });
+            })
     }
 
     render() {
