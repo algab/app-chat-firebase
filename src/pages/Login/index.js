@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Alert, Dimensions } from 'react-native';
+
+import '@firebase/firestore';
 
 import { StackActions, NavigationActions } from 'react-navigation';
-import { Item, Input, Container, Text, Button, Toast } from 'native-base';
+import { Item, Input, Container, Text, Button } from 'native-base';
 
 import Loader from '../../components/Loader';
 
@@ -20,10 +22,11 @@ export default class Login extends React.Component {
     }
 
     signIn = () => {
+        const { email, password } = this.state;
         this.setState({ loading: true });
-        firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-            .then(async (res) => {
-                await storeData('user', { email: res.user.email });
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then(async () => {
+                await this.storageData(email);
                 this.setState({ loading: false });
                 const resetAction = StackActions.reset({
                     index: 0,
@@ -34,23 +37,20 @@ export default class Login extends React.Component {
             .catch((err) => {
                 this.setState({ loading: false });
                 if (err.code === 'auth/wrong-password') {
-                    Toast.show({
-                        text: 'Email ou senha incorretos.',
-                        type: 'warning',
-                        position: 'top'
-                    });
+                    Alert.alert('Aviso', 'E-mail ou senha incorretos.');
                 } else {
-                    Toast.show({
-                        text: 'Por favor, tente novamente mais tarde.',
-                        type: 'danger',
-                        position: 'top'
-                    });
+                    Alert.alert('Erro', 'Por favor, tente novamente mais tarde.');
                 }
             });
     }
 
     register = () => {
         this.props.navigation.navigate('Register');
+    }
+
+    async storageData(email) {
+        const user = await firebase.firestore().collection('users').where('email', '==', email).get();
+        user.forEach(async doc => await storeData('user', { ...doc.data(), id: doc.id }));
     }
 
     render() {
