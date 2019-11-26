@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, Alert, KeyboardAvoidingView } from 'react-native';
+
+import '@firebase/firestore';
 
 import md5 from 'md5';
-import { Text, Toast } from 'native-base';
+import { Text } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 
 import { Form } from './Form';
@@ -25,20 +27,14 @@ export default class Register extends React.Component {
     saveRegister = (values) => {
         this.setState({ loading: true });
         const { name, email, password } = values;
-        firebase.database().ref('users').once('value')
-            .then(async snapshot => {
-                snapshot.forEach(data => {
-                    if (data.val().email === email) {
-                        throw new Error('email-already-in-use');
-                    }
-                });
-                await firebase.database().ref('users').push({
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then(async () => {
+                await firebase.firestore().collection('users').add({
                     name,
                     email,
                     avatar_url: `https://www.gravatar.com/avatar/${md5(email.toLowerCase())}?d=identicon`,
                 });
-                const data = await firebase.auth().createUserWithEmailAndPassword(email, password);
-                await storeData('user', { email: data.user.email });
+                await this.storageData(email);
                 this.setState({ loading: false });
                 const resetAction = StackActions.reset({
                     index: 0,
@@ -48,20 +44,17 @@ export default class Register extends React.Component {
             })
             .catch(err => {
                 this.setState({ loading: false });
-                if (err.message === 'email-already-in-use') {
-                    Toast.show({
-                        text: 'Email indisponível, tente outro.',
-                        type: 'warning',
-                        position: 'top'
-                    });
+                if (err.code === 'auth/email-already-in-use') {
+                    Alert.alert('Aviso', 'E-mail indisponível, tente outro.');
                 } else {
-                    Toast.show({
-                        text: 'Por favor, tente novamente mais tarde.',
-                        type: 'danger',
-                        position: 'top'
-                    });
+                    Alert.alert('Erro', 'Por favor, tente novamente mais tarde.');
                 }
             });
+    }
+
+    async storageData(email) {
+        const user = await firebase.firestore().collection('users').where('email', '==', email).get();
+        user.forEach(async doc => await storeData('user', { ...doc.data(), id: doc.id }));
     }
 
     render() {
