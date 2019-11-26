@@ -9,6 +9,9 @@ import Login from './src/pages/Login';
 import Register from './src/pages/Register';
 import Dashboard from './src/pages/Dashboard';
 import Search from './src/pages/Dashboard/Search';
+import Chat from './src/pages/Dashboard/Chat';
+
+console.disableYellowBox = true;
 
 const App = createAppContainer(
     createStackNavigator({
@@ -26,6 +29,9 @@ const App = createAppContainer(
         },
         Search: {
             screen: Search
+        },
+        Chat: {
+            screen: Chat
         },
     },
         {
