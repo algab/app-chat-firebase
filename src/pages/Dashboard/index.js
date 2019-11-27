@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import '@firebase/firestore';
+import { format } from 'date-fns';
 import {
     Container,
     Content,
@@ -13,16 +15,16 @@ import {
     Button,
     Thumbnail,
     Icon,
-    Toast,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 
 import firebase from '../../services/firebase';
-import { removeData } from '../../services/storage';
+import { readData, removeData } from '../../services/storage';
 
 export default class Dashboard extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { messages: [], loading: true };
     }
 
     static navigationOptions = ({ navigation }) => {
@@ -39,15 +41,43 @@ export default class Dashboard extends React.Component {
                         <Icon name='search' style={{ color: '#fff' }} />
                     </Button>
                     <Button transparent onPress={navigation.getParam('signOut')}>
-                        <Icon name='log-out' style={{ color: '#fff' }} />
+                        <Icon type="MaterialCommunityIcons" name='logout' style={{ color: '#fff' }} />
                     </Button>
                 </View>
             ),
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const user = await readData('user');
         this.props.navigation.setParams({ signOut: this.signOut });
+        firebase.firestore().collection('last-messages').doc(user.id).collection('messages')
+            .onSnapshot(snapshot => {
+                const messages = [];
+                snapshot.forEach(doc => {
+                    messages.push({ ...doc.data(), createdAt: doc.data().createdAt.toDate(), id: doc.id });
+                });
+                this.searchUsers(messages);
+            })
+    }
+
+    searchUsers(messages) {
+        const map = messages.map(async data => {
+            const user = await firebase.firestore().collection('users').doc(data.id).get();
+            return { ...data, user: user.data() };
+        });
+        Promise.all(map).then(data => {
+            data.sort((obj1, obj2) => {
+                if (new Date(obj1.createdAt) < new Date(obj2.createdAt)) {
+                    return 1;
+                }
+                if (new Date(obj1.createdAt) > new Date(obj2.createdAt)) {
+                    return -1;
+                }
+                return 0;
+            });
+            this.setState({ messages: data, loading: false });
+        });
     }
 
     signOut = () => {
@@ -59,84 +89,48 @@ export default class Dashboard extends React.Component {
                 });
                 this.props.navigation.dispatch(resetAction);
                 await removeData('user');
-            })
-            .catch(() => {
-                Toast.show({
-                    text: 'Por favor, tente novamente mais tarde.',
-                    type: 'danger',
-                    position: 'top'
-                });
-            })
+            });
+    }
+
+    listChat() {
+        const { messages } = this.state;
+        const { navigation } = this.props;
+        return messages.map(data => {
+            return (
+                <ListItem avatar key={data.id} button={true} onPress={() => navigation.navigate('Chat', { id: data.id })}>
+                    <Left>
+                        <Thumbnail style={{ width: 40, height: 40 }} source={{ uri: data.user.avatar_url }} />
+                    </Left>
+                    <Body>
+                        <Text>{data.user.name}</Text>
+                        <Text note>{data.text}</Text>
+                    </Body>
+                    <Right>
+                        <Text note>{`${format(data.createdAt, 'HH:mm')}`}</Text>
+                    </Right>
+                </ListItem>
+            )
+        })
     }
 
     render() {
-        return (
-            <Container>
-                <Content>
-                    <List>
-                        <ListItem avatar>
-                            <Left>
-                                <Thumbnail source={{ uri: 'https://www.gravatar.com/avatar/afaf2a2b5191167f6ce0d32ee8216372?d=identicon' }} />
-                            </Left>
-                            <Body>
-                                <Text>Kumar Pratik</Text>
-                                <Text note>Doing what you like will always keep you happy . .</Text>
-                            </Body>
-                            <Right>
-                                <Text note>3:43 pm</Text>
-                            </Right>
-                        </ListItem>
-                        <ListItem avatar>
-                            <Left>
-                                <Thumbnail source={{ uri: 'https://www.gravatar.com/avatar/afaf2a2b5191167f6ce0d32ee8216372?d=identicon' }} />
-                            </Left>
-                            <Body>
-                                <Text>Kumar Pratik</Text>
-                                <Text note>Doing what you like will always keep you happy . .</Text>
-                            </Body>
-                            <Right>
-                                <Text note>3:43 pm</Text>
-                            </Right>
-                        </ListItem>
-                        <ListItem avatar>
-                            <Left>
-                                <Thumbnail source={{ uri: 'https://www.gravatar.com/avatar/afaf2a2b5191167f6ce0d32ee8216372?d=identicon' }} />
-                            </Left>
-                            <Body>
-                                <Text>Kumar Pratik</Text>
-                                <Text note>Doing what you like will always keep you happy . .</Text>
-                            </Body>
-                            <Right>
-                                <Text note>3:43 pm</Text>
-                            </Right>
-                        </ListItem>
-                        <ListItem avatar>
-                            <Left>
-                                <Thumbnail source={{ uri: 'https://www.gravatar.com/avatar/afaf2a2b5191167f6ce0d32ee8216372?d=identicon' }} />
-                            </Left>
-                            <Body>
-                                <Text>Kumar Pratik</Text>
-                                <Text note>Doing what you like will always keep you happy . .</Text>
-                            </Body>
-                            <Right>
-                                <Text note>3:43 pm</Text>
-                            </Right>
-                        </ListItem>
-                        <ListItem avatar>
-                            <Left>
-                                <Thumbnail source={{ uri: 'https://www.gravatar.com/avatar/afaf2a2b5191167f6ce0d32ee8216372?d=identicon' }} />
-                            </Left>
-                            <Body>
-                                <Text>Kumar Pratik</Text>
-                                <Text note>Doing what you like will always keep you happy . .</Text>
-                            </Body>
-                            <Right>
-                                <Text note>3:43 pm</Text>
-                            </Right>
-                        </ListItem>
-                    </List>
-                </Content>
-            </Container>
-        )
+        const { messages, loading } = this.state;
+        if (messages.length === 0 && loading === false) {
+            return (
+                <Container style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: 'gray', fontSize: 12 }}>NENHUMA CONVERSA</Text>
+                </Container>
+            )
+        } else {
+            return (
+                <Container>
+                    <Content>
+                        <List>
+                            {this.listChat()}
+                        </List>
+                    </Content>
+                </Container>
+            )
+        }
     }
 }

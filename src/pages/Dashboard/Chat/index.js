@@ -51,7 +51,7 @@ export default class Chat extends React.Component {
     async verifyMessages() {
         const messages = [];
         const { fromUser, toUser } = this.state;
-        const result = await firebase.firestore().collection('chat').doc(fromUser.id).collection(toUser.id).get();
+        const result = await firebase.firestore().collection('chat').doc(fromUser.id).collection(toUser.id).orderBy('createdAt').get();
         result.forEach(doc => messages.unshift({ ...doc.data(), createdAt: doc.data().createdAt.toDate() }));
         this.setState({ messages });
     }

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import '@firebase/firestore';
 import {
     Container,
     Content,
@@ -20,7 +21,7 @@ import { readData } from '../../../services/storage';
 export default class Search extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { users: [], filterUsers: [] };
+        this.state = { users: [], filter: [] };
     }
 
     static navigationOptions = ({ navigation }) => {
@@ -47,37 +48,33 @@ export default class Search extends React.Component {
                     result.push(data);
                 }
             });
-            this.setState({ filterUsers: result });
+            this.setState({ filter: result });
         }, 500);
     }
 
     async componentDidMount() {
         this.props.navigation.setParams({ search: this.searchName });
         const user = await readData('user');
-        firebase.database().ref('users').once('value')
-            .then((snapshot) => {
+        firebase.firestore().collection('users').get()
+            .then(snapshot => {
                 const users = [];
-                snapshot.forEach(data => {
-                    if (data.val().email !== user.email) {
-                        users.push({
-                            id: data.key,
-                            name: data.val().name,
-                            email: data.val().email,
-                            avatar_url: data.val().avatar_url,
-                        });
+                snapshot.forEach(doc => {
+                    if (doc.data().email !== user.email) {
+                        users.push({ ...doc.data(), id: doc.id });
                     }
                 });
-                this.setState({ users, filterUsers: users });
+                this.setState({ users, filter: users });
             });
     }
 
     listRender() {
-        const { filterUsers } = this.state;
-        return filterUsers.map(data => {
+        const { filter } = this.state;
+        const { navigation } = this.props;
+        return filter.map(data => {
             return (
-                <ListItem avatar key={data.id} button={true} onPress={() => console.log('OK')}>
+                <ListItem avatar key={data.id} button={true} onPress={() => navigation.navigate('Chat', { id: data.id })}>
                     <Left>
-                        <Thumbnail source={{ uri: data.avatar_url }} />
+                        <Thumbnail style={{ height: 40, width: 40 }} source={{ uri: data.avatar_url }} />
                     </Left>
                     <Body>
                         <Text>{data.name}</Text>
