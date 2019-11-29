@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StatusBar } from 'react-native';
 
 import '@firebase/firestore';
 import { format } from 'date-fns';
@@ -33,11 +33,12 @@ export default class Dashboard extends React.Component {
             title: 'Minhas Conversas',
             headerTintColor: '#FFF',
             headerStyle: {
-                backgroundColor: '#FF6F00',
+                backgroundColor: '#FE5919',
+                marginTop: -25
             },
             headerLeft: null,
             headerRight: () => (
-                <View style={{ flexDirection: 'row' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                     <Button transparent onPress={() => navigation.navigate('Search')}>
                         <Icon name='search' style={{ color: '#fff' }} />
                     </Button>
@@ -139,12 +140,14 @@ export default class Dashboard extends React.Component {
         if (messages.length === 0 && loading === false) {
             return (
                 <Container style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <StatusBar backgroundColor="#FE5919" barStyle="dark-content" />
                     <Text style={{ color: 'gray', fontSize: 12 }}>NENHUMA CONVERSA</Text>
                 </Container>
             )
         } else {
             return (
                 <Container>
+                    <StatusBar backgroundColor="#FE5919" barStyle="dark-content" />
                     <Content>
                         <List>
                             {this.listChat()}

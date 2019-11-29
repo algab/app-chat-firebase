@@ -1,10 +1,9 @@
 import React from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, KeyboardAvoidingView } from 'react-native';
 
 import '@firebase/firestore';
-import { Thumbnail, Text } from 'native-base';
-import { GiftedChat } from 'react-native-gifted-chat'
-import KeyboardSpacer from 'react-native-keyboard-spacer';
+import { Thumbnail, Text, Icon } from 'native-base';
+import { GiftedChat, Send } from 'react-native-gifted-chat'
 
 import firebase from '../../../services/firebase';
 import { readData } from '../../../services/storage';
@@ -23,7 +22,8 @@ export default class Chat extends React.Component {
         return {
             headerTintColor: '#FFF',
             headerStyle: {
-                backgroundColor: '#FF6F00',
+                backgroundColor: '#FE5919',
+                marginTop: -25
             },
             headerTitle: navigation.getParam('header'),
         }
@@ -72,6 +72,14 @@ export default class Chat extends React.Component {
         await firebase.firestore().collection('last-messages').doc(toUser.id).collection('messages').doc(fromUser.id).set(messages[0]);
     }
 
+    renderSend = (props) => (
+        <Send {...props}>
+            <View style={{ marginBottom: 10, marginRight: 5 }}>
+                <Icon type="MaterialCommunityIcons" name='send' style={{ color: '#3F51B5' }} />
+            </View>
+        </Send>
+    )
+
     render() {
         const { fromUser } = this.state;
         return (
@@ -80,13 +88,14 @@ export default class Chat extends React.Component {
                     placeholder="Escreva a sua mensagem"
                     messages={this.state.messages}
                     onSend={messages => this.onSend(messages)}
+                    renderSend={(props) => this.renderSend(props)}
                     user={{
                         _id: fromUser.id,
                         name: fromUser.name,
                         avatar: fromUser.avatar_url
                     }}
                 />
-                {Platform.OS === 'android' && <KeyboardSpacer />}
+                {Platform.OS === 'android' && <KeyboardAvoidingView enabled />}
             </View>
         )
     }

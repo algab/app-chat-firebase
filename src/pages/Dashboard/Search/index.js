@@ -29,7 +29,8 @@ export default class Search extends React.Component {
         return {
             headerTintColor: '#FFF',
             headerStyle: {
-                backgroundColor: '#FF6F00',
+                backgroundColor: '#FE5919',
+                marginTop: -25
             },
             headerTitle: () => (
                 <Item>
