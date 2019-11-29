@@ -26,6 +26,10 @@
     "android": {
       "package": "com.chatfirebase"
     },
+    "androidStatusBar": {
+      "backgroundColor": "#808080",
+      "barStyle": "light-content"
+    },
     "ios": {
       "supportsTablet": true
     }
