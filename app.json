@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "chat-firebase",
+    "name": "Chat Firebase",
     "slug": "chat-firebase",
     "privacy": "public",
     "sdkVersion": "35.0.0",
@@ -23,6 +23,9 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "android": {
+      "package": "com.chatfirebase"
+    },
     "ios": {
       "supportsTablet": true
     }

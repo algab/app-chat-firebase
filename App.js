@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { Root } from "native-base";
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
@@ -40,7 +39,4 @@ const App = createAppContainer(
     )
 );
 
-export default () =>
-    <Root>
-        <App />
-    </Root>;
+export default () => <App />
