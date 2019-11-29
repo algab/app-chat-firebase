@@ -3,7 +3,7 @@ import { View, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 
 const Loader = ({ loading }) => (
     <Modal
-        transparent={false}
+        transparent
         animationType={'none'}
         visible={loading}>
         <View style={styles.modalBackground}>
