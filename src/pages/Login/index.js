@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Image, Alert, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, Image, Alert, KeyboardAvoidingView, StatusBar } from 'react-native';
 
 import '@firebase/firestore';
 
@@ -55,7 +55,8 @@ export default class Login extends React.Component {
 
     render() {
         return (
-            <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+            <KeyboardAvoidingView style={styles.container} enabled>
+                <StatusBar backgroundColor="#808080" barStyle="light-content" />
                 <Loader loading={this.state.loading} />
                 <View style={styles.login}>
                     <Image style={styles.image} source={require("../../../assets/firebase-logo.png")} />
