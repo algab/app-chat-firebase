@@ -1,23 +1,18 @@
 import React from 'react';
 import { View, Modal, StyleSheet, ActivityIndicator } from 'react-native';
 
-const Loader = props => {
-    const { loading } = props;
-    return (
-        <Modal
-            transparent={true}
-            animationType={'none'}
-            visible={loading}
-            translucentStatusBar={true}
-            onRequestClose={() => { console.log('close modal') }}>
-            <View style={styles.modalBackground}>
-                <View style={styles.activityIndicatorWrapper}>
-                    <ActivityIndicator animating={loading} />
-                </View>
+const Loader = ({ loading }) => (
+    <Modal
+        transparent={false}
+        animationType={'none'}
+        visible={loading}>
+        <View style={styles.modalBackground}>
+            <View style={styles.activityIndicatorWrapper}>
+                <ActivityIndicator animating={loading} />
             </View>
-        </Modal>
-    )
-}
+        </View>
+    </Modal>
+)
 
 const styles = StyleSheet.create({
     modalBackground: {
