@@ -59,7 +59,7 @@ export default class Register extends React.Component {
 
     render() {
         return (
-            <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+            <KeyboardAvoidingView style={styles.container} enabled>
                 <Loader loading={this.state.loading} />
                 <View style={styles.register}>
                     <Text style={styles.text}>Cadastrar-se</Text>
