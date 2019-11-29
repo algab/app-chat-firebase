@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, View, Image, Alert, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Alert, KeyboardAvoidingView } from 'react-native';
 
 import '@firebase/firestore';
 
+import { Item, Input, Text, Button } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
-import { Item, Input, Container, Text, Button } from 'native-base';
 
 import Loader from '../../components/Loader';
 
@@ -55,7 +55,7 @@ export default class Login extends React.Component {
 
     render() {
         return (
-            <Container style={styles.container}>
+            <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
                 <Loader loading={this.state.loading} />
                 <View style={styles.login}>
                     <Image style={styles.image} source={require("../../../assets/firebase-logo.png")} />
@@ -71,12 +71,12 @@ export default class Login extends React.Component {
                         </Text>
                     </Button>
                     <Button transparent style={styles.buttonRegister} onPress={this.register}>
-                        <Text style={{ fontSize: 12 }}>
+                        <Text style={{ fontSize: 12, color: '#3F51B5' }}>
                             Não tem uma conta ? Cadastrar-se
                         </Text>
                     </Button>
                 </View>
-            </Container>
+            </KeyboardAvoidingView>
         );
     }
 }
@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#fff',
-        height: Dimensions.get('window').height,
     },
     login: {
         alignItems: 'center',

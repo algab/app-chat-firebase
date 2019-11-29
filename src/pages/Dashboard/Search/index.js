@@ -14,6 +14,7 @@ import {
     Item,
     Input,
 } from 'native-base';
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
 import firebase from '../../../services/firebase';
 import { readData } from '../../../services/storage';
@@ -21,7 +22,7 @@ import { readData } from '../../../services/storage';
 export default class Search extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { users: [], filter: [] };
+        this.state = { users: [], filter: [], loading: true };
     }
 
     static navigationOptions = ({ navigation }) => {
@@ -63,15 +64,17 @@ export default class Search extends React.Component {
                         users.push({ ...doc.data(), id: doc.id });
                     }
                 });
-                this.setState({ users, filter: users });
+                this.setState({ users, filter: users, loading: false });
             });
     }
 
     listRender() {
         const { filter } = this.state;
         const { navigation } = this.props;
-        return filter.map(data => {
-            return (
+        if (filter.length === 0) {
+            return this.skeleton([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        } else {
+            return filter.map(data => (
                 <ListItem avatar key={data.id} button={true} onPress={() => navigation.navigate('Chat', { id: data.id })}>
                     <Left>
                         <Thumbnail style={{ height: 40, width: 40 }} source={{ uri: data.avatar_url }} />
@@ -81,8 +84,23 @@ export default class Search extends React.Component {
                         <Text note>{data.email}</Text>
                     </Body>
                 </ListItem>
-            );
-        });
+            ));
+        }
+    }
+
+    skeleton(arr) {
+        const { loading } = this.state;
+        return arr.map((data, index) => (
+            <ListItem avatar key={index}>
+                <Left>
+                    <ShimmerPlaceHolder style={{ width: 37, height: 37, borderRadius: 18 }} autoRun={true} visible={!loading} />
+                </Left>
+                <Body>
+                    <ShimmerPlaceHolder style={{ height: 10, marginBottom: 10 }} autoRun={true} visible={!loading} />
+                    <ShimmerPlaceHolder autoRun={true} visible={!loading} />
+                </Body>
+            </ListItem>
+        ));
     }
 
     render() {

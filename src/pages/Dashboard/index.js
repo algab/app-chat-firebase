@@ -17,6 +17,7 @@ import {
     Icon,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
+import ShimmerPlaceHolder from 'react-native-shimmer-placeholder';
 
 import firebase from '../../services/firebase';
 import { readData, removeData } from '../../services/storage';
@@ -95,8 +96,10 @@ export default class Dashboard extends React.Component {
     listChat() {
         const { messages } = this.state;
         const { navigation } = this.props;
-        return messages.map(data => {
-            return (
+        if (messages.length === 0) {
+            return this.skeleton([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        } else {
+            return messages.map(data => (
                 <ListItem avatar key={data.id} button={true} onPress={() => navigation.navigate('Chat', { id: data.id })}>
                     <Left>
                         <Thumbnail style={{ width: 40, height: 40 }} source={{ uri: data.user.avatar_url }} />
@@ -109,8 +112,26 @@ export default class Dashboard extends React.Component {
                         <Text note>{`${format(data.createdAt, 'HH:mm')}`}</Text>
                     </Right>
                 </ListItem>
-            )
-        })
+            ));
+        }
+    }
+
+    skeleton(arr) {
+        const { loading } = this.state;
+        return arr.map((data, index) => (
+            <ListItem avatar key={index}>
+                <Left>
+                    <ShimmerPlaceHolder style={{ width: 37, height: 37, borderRadius: 18 }} autoRun={true} visible={!loading} />
+                </Left>
+                <Body>
+                    <ShimmerPlaceHolder style={{ height: 10, marginBottom: 10 }} autoRun={true} visible={!loading} />
+                    <ShimmerPlaceHolder autoRun={true} visible={!loading} />
+                </Body>
+                <Right>
+                    <ShimmerPlaceHolder style={{ width: 30 }} autoRun={true} visible={!loading} />
+                </Right>
+            </ListItem>
+        ));
     }
 
     render() {

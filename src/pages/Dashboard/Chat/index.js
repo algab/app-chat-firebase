@@ -35,7 +35,7 @@ export default class Chat extends React.Component {
         const result = await firebase.firestore().collection('users').doc(navigation.getParam('id')).get();
         this.setState({ fromUser: user, toUser: { ...result.data(), id: result.id } });
         navigation.setParams({ header: this.headerTitle });
-        await this.verifyMessages();
+        this.getMessages();
     }
 
     headerTitle = () => {
@@ -48,19 +48,24 @@ export default class Chat extends React.Component {
         )
     }
 
-    async verifyMessages() {
-        const messages = [];
+    async getMessages() {
         const { fromUser, toUser } = this.state;
-        const result = await firebase.firestore().collection('chat').doc(fromUser.id).collection(toUser.id).orderBy('createdAt').get();
-        result.forEach(doc => messages.unshift({ ...doc.data(), createdAt: doc.data().createdAt.toDate() }));
-        this.setState({ messages });
+        firebase.firestore().collection('chat').doc(fromUser.id).collection(toUser.id).orderBy('createdAt')
+            .onSnapshot(snapshot => {
+                const messages = [];
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        messages.unshift({ ...change.doc.data(), createdAt: change.doc.data().createdAt.toDate() })
+                    }
+                });
+                this.setState(previousState => ({
+                    messages: messages.concat(previousState.messages),
+                }));
+            })
     }
 
     async onSend(messages) {
         const { fromUser, toUser } = this.state;
-        this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, messages),
-        }));
         await firebase.firestore().collection('chat').doc(fromUser.id).collection(toUser.id).add(messages[0]);
         await firebase.firestore().collection('chat').doc(toUser.id).collection(fromUser.id).add(messages[0]);
         await firebase.firestore().collection('last-messages').doc(fromUser.id).collection('messages').doc(toUser.id).set(messages[0]);

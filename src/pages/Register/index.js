@@ -61,7 +61,7 @@ export default class Register extends React.Component {
         return (
             <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
                 <Loader loading={this.state.loading} />
-                <View style={styles.login}>
+                <View style={styles.register}>
                     <Text style={styles.text}>Cadastrar-se</Text>
                     <View style={styles.separator}></View>
                     <Form submit={this.saveRegister} />
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#fff',
     },
-    login: {
+    register: {
         alignItems: 'center',
         backgroundColor: '#fff',
         elevation: 30,

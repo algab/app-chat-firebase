@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
+import { AppLoading } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import { StackActions, NavigationActions } from 'react-navigation';
 
@@ -31,7 +31,6 @@ export default class Home extends React.Component {
                 actions: [NavigationActions.navigate({ routeName: user ? 'Dashboard' : 'Login' })],
             });
             this.props.navigation.dispatch(resetAction);
-            // this.props.navigation.navigate('Login');
         })
     }
 
